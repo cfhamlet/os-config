@@ -1,0 +1,9 @@
+[run]
+parallel = true
+branch = true
+source = os_config
+
+[paths]
+source =
+    src/os_config
+    .tox/*/lib/python*/site-packages/os_config
