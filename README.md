@@ -26,6 +26,8 @@ config = Config.create()
 * create from params
 ```
 config = Config.create(a=1, b=2)
+assert config.a == 1
+assert config.b == 2
 ```
 
 * create from dict
