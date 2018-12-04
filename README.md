@@ -46,7 +46,7 @@ config = Config.create_from_json(json_string)
 ```
 config1 = Config.create(a=1)
 config2 = Config.create(a=2, b=3)
-config2.update(1)
+config2.update(config1)
 ```
 
 
