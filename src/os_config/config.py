@@ -186,7 +186,7 @@ class Config(object):
         return json.dumps(c, cls=_ConfigEncoder)
 
 
-VALID_TYPES = [_Config, int, tuple, type(None), bool]
+VALID_TYPES = [_Config, int, tuple, type(None), bool, float]
 
 
 if _PY3:
