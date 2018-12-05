@@ -49,6 +49,13 @@ def test_invalid_attribute_name():
         with pytest.raises(AttributeError):
             setattr(c, k, None)
 
+def test_valid_type():
+    c = Config.create()
+    for v in [1, False, (1, 2), None, 1.1, Config.create()]:
+        setattr(c, 'test_key', v)
+        assert getattr(c, 'test_key') == v
+    
+
 
 def test_invalid_type():
     class TestClass(object):
