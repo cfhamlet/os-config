@@ -200,3 +200,13 @@ def test_create_from_object():
         a = 1
     c = Config.from_object(A)
     assert c.a == 1
+
+def test_sub_config():
+    c = Config.create()
+    a = Config.create()
+    c.a = a
+    c.b = a
+    c.a = 1
+    with pytest.raises(AttributeError):
+        a.c = c
+
