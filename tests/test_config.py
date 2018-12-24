@@ -14,7 +14,7 @@ def test_create():
 def test_create_from_dict():
 
     d = {'a': 3, 'b': 4}
-    c = Config.create_from_dict(d)
+    c = Config.from_dict(d)
 
     assert c.a == 3
     assert c.b == 4
@@ -159,7 +159,7 @@ def test_create_from_json_01():
     d = {'a': 1}
     import json
     j = json.dumps(d)
-    c = Config.create_from_json(j)
+    c = Config.from_json(j)
     assert c.a == 1
 
 
@@ -184,5 +184,12 @@ def test_key_filter_01():
 
 def test_tuple_with_list():
     d = {'a': (1, 2, [1, 2, 3])}
-    c = Config.create_from_dict(d)
+    c = Config.from_dict(d)
     assert c.a == (1, 2, (1, 2, 3))
+
+
+def test_create_from_object():
+    class A(object):
+        a = 1
+    c = Config.from_object(A)
+    assert c.a == 1

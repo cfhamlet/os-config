@@ -197,22 +197,24 @@ class Config(object):
         return c
 
     @classmethod
-    def create_from_dict(cls, d, key_filter=allowed_all):
+    def from_dict(cls, d, key_filter=allowed_all):
         if not isinstance(d, dict):
             raise TypeError('Not dict, %s' % type(d))
         return Config.create(key_filter=key_filter, **d)
 
     @classmethod
-    def create_from_json(cls, j, key_filter=allowed_all):
+    def from_json(cls, j, key_filter=allowed_all):
         d = json.loads(j)
-        return Config.create_from_dict(d, key_filter=key_filter)
+        return Config.from_dict(d, key_filter=key_filter)
 
     @classmethod
     def from_object(self, obj, key_filter=allowed_all):
         d = {}
         for key in dir(obj):
+            if key.startswith('_'):
+                continue
             d[key] = getattr(obj, key)
-        return Config.create_from_dict(d, key_filter=key_filter)
+        return Config.from_dict(d, key_filter=key_filter)
 
     @classmethod
     def to_json(cls, c):
