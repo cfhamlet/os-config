@@ -188,6 +188,13 @@ def test_tuple_with_list():
     assert c.a == (1, 2, (1, 2, 3))
 
 
+def test_tuple_with_dict():
+    d = {'a': (1, {'b': 2}, [3, 4, 5])}
+
+    c = Config.from_dict(d)
+    assert c.a[1].b == 2
+
+
 def test_create_from_object():
     class A(object):
         a = 1
