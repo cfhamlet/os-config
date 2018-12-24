@@ -3,20 +3,17 @@ sudo: false
 matrix:
   include:
   - python: 2.7
-    env: TOXENV=py27
+    env: TOXENV=py27,codecov
   - python: 3.6
-    env: TOXENV=py36
+    env: TOXENV=py36,codecov
   - python: pypy
     env: TOXENV=pypy
   - python: pypy3
     env: TOXENV=pypy3
-  - env: TOXENV=coverage
 install:
-- pip install -U pip tox codecov
+- pip install -U pip tox 
 script:
 - tox
-after_success:
-- codecov
 deploy:
   provider: pypi
   user: cfhamlet
@@ -24,4 +21,4 @@ deploy:
     secure: oT+dWNUUOJGUkftyeQoRrCNes7q7rPcfIDEuIgV93qWyTYb7vsz4TOFE4iTDYTGdp6qfBOD01at+B+8B3R58mFRcLxltp6imf9XJrRDmFbcdPyEwNsV/JqoNuDnMWEisHL50bHn2TogPBo6Kno+fhPfo2IIGHvAfeBKW4MX4/yvqt/K/tqY2TPe3WpQNYvl6DcTLzOq79r6b/uPnWIhEsZrdaphmSNIatts5+A1Y6V8inOwAgfafre51fdez5FHa5QDSIysKed6PtuktML1SdDUy+3vK1QDnm4JerFSltK0L2PZFbLYS2WZpHzqTKZ+S8Kp+bcXjEapHSaVpoYamZ/Uz2twXi37/RgfEqI0royTcNQn26VWAFXdxldyimMRaiI/vPqycyJAXGH4QAHIsZurver30r/JUeyqAht6mLmhtZFe1Q4hvE8cGZsULydwLWU3aVRS1Us/4b0sQboJpC6jTruaqXs404Jyv3EqLytGpImup15pzY/0jqnp8IQHgC13blOq69yniFwQXGsNJlnISPIX3Fvz2nc40C0znk9Myeo5Hoa7/LTld8q2NPz5I8Tn2qB1W78gKbloq9P8NXwzcQJCzliTUES9IKjWKE8MOLXMMMrn7+mHODILvXehUvaBwgi6uOcaKmEguJdlGzswhDvsZfmixr/irsuRtX9o=
   true:
     tags: true
-    condition: ${TOXENV} == py27
+    condition: ${TRAVIS_PYTHON_VERSION} == 2.7
