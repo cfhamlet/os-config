@@ -3,6 +3,7 @@ import json
 import operator
 import sys
 import types
+from collections import Counter
 
 _PY3 = sys.version_info[0] == 3
 if _PY3:
@@ -37,7 +38,7 @@ class _Config(object):
 
     def __init__(self, key_filter=allowed_all):
         self.__dict__['_Config__key_filter'] = key_filter
-        self.__sub_configs = set([self, ])
+        self.__sub_configs = Counter({self: 1})
 
     def __is_sub_config(self, c):
         for sub in self.__sub_configs:
@@ -75,14 +76,16 @@ class _Config(object):
 
     def __add_sub_config(self, c):
         if isinstance(c, _Config):
-            self.__sub_configs.add(c)
+            self.__sub_configs[c] += 1
         elif isinstance(c, tuple):
             for t in c:
                 self.__add_sub_config(t)
 
     def __discard_sub_config(self, c):
         if c in self.__sub_configs:
-            self.__sub_configs.discard(c)
+            self.__sub_configs[c] -= 1
+            if self.__sub_configs[c] <= 0:
+                self.__sub_configs.pop(c)
         if isinstance(c, tuple):
             for t in c:
                 self.__discard_sub_config(t)
@@ -103,7 +106,7 @@ class _Config(object):
 
             if isinstance(obj, _Config):
                 self.__ensure_not_sub_config_of(obj)
-                sub_configs.add(obj)
+                sub_configs[obj]+=1
             else:
                 self.__ensure_attribute_type(obj)
             lst.append(obj)
@@ -112,7 +115,7 @@ class _Config(object):
 
     def __assign_tuple_obj(self, key, value):
 
-        sub_configs = set()
+        sub_configs = Counter()
         new_value = self.__true_tuple(sub_configs, value)
         self.__sub_configs.update(sub_configs)
         self.__assign(key, new_value)
