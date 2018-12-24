@@ -74,13 +74,6 @@ class _Config(object):
         if not isinstance(value, VALID_TYPES):
             raise AttributeError('Do not support %r' % type(value))
 
-    def __add_sub_config(self, c):
-        if isinstance(c, _Config):
-            self.__sub_configs[c] += 1
-        elif isinstance(c, tuple):
-            for t in c:
-                self.__add_sub_config(t)
-
     def __discard_sub_config(self, c):
         if c in self.__sub_configs:
             self.__sub_configs[c] -= 1
@@ -92,7 +85,7 @@ class _Config(object):
 
     def __assign_config_obj(self, key, value):
         self.__ensure_not_sub_config_of(value)
-        self.__add_sub_config(value)
+        self.__sub_configs[value] += 1
         self.__assign(key, value)
 
     def __true_tuple(self, sub_configs, tp):
@@ -154,7 +147,6 @@ class _Config(object):
         for k, v in o:
             if k not in self:
                 setattr(self, k, v)
-                continue
             else:
                 vv = getattr(self, k)
                 if isinstance(v, _Config) and isinstance(vv, _Config):
