@@ -97,12 +97,16 @@ class _Config(object):
         for obj in tp:
             if isinstance(obj, (list, tuple)):
                 lst.append(self.__true_tuple(sub_configs, obj))
-            elif isinstance(obj, _Config):
+                continue
+            elif isinstance(obj, dict):
+                obj = Config.from_dict(obj)
+
+            if isinstance(obj, _Config):
                 self.__ensure_not_sub_config_of(obj)
                 sub_configs.add(obj)
             else:
                 self.__ensure_attribute_type(obj)
-                lst.append(obj)
+            lst.append(obj)
 
         return tuple(lst)
 
