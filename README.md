@@ -32,13 +32,13 @@ assert config.b == 2
 
 * create from dict
 ```
-config = Config.create_from_dict({'a':1, 'b':2})
+config = Config.from_dict({'a':1, 'b':2})
 ```
 
 * create from json
 ```
 json_string = '{"a": 1, "b": 2}'
-config = Config.create_from_json(json_string)
+config = Config.from_json(json_string)
 ```
 
 

@@ -1,5 +1,6 @@
 import pytest
 from os_config import Config
+from os_config.config import allowed_upper
 
 
 def test_create():
@@ -13,7 +14,7 @@ def test_create():
 def test_create_from_dict():
 
     d = {'a': 3, 'b': 4}
-    c = Config.create_from_dict(d)
+    c = Config.from_dict(d)
 
     assert c.a == 3
     assert c.b == 4
@@ -49,12 +50,12 @@ def test_invalid_attribute_name():
         with pytest.raises(AttributeError):
             setattr(c, k, None)
 
+
 def test_valid_type():
     c = Config.create()
     for v in [1, False, (1, 2), None, 1.1, Config.create()]:
         setattr(c, 'test_key', v)
         assert getattr(c, 'test_key') == v
-    
 
 
 def test_invalid_type():
@@ -65,7 +66,7 @@ def test_invalid_type():
         pass
 
     c = Config.create()
-    for v in [{}, [1, 2], TestClass, TestClass(), test_method, ]:
+    for v in [{},  TestClass, TestClass(), test_method, ]:
         with pytest.raises(AttributeError):
             c.c = v
 
@@ -158,7 +159,7 @@ def test_create_from_json_01():
     d = {'a': 1}
     import json
     j = json.dumps(d)
-    c = Config.create_from_json(j)
+    c = Config.from_json(j)
     assert c.a == 1
 
 
@@ -168,3 +169,27 @@ def test_dump_to_json_01():
     import json
     d = json.loads(j)
     assert d['a'] == 1
+
+
+def test_key_filter_01():
+    c = Config.create(a=1, key_filter=allowed_upper)
+    assert not hasattr(c, 'a')
+
+    c.b = 1
+    assert not hasattr(c, 'b')
+
+    c.C = 1
+    assert hasattr(c, 'C')
+
+
+def test_tuple_with_list():
+    d = {'a': (1, 2, [1, 2, 3])}
+    c = Config.from_dict(d)
+    assert c.a == (1, 2, (1, 2, 3))
+
+
+def test_create_from_object():
+    class A(object):
+        a = 1
+    c = Config.from_object(A)
+    assert c.a == 1
