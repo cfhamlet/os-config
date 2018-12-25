@@ -95,11 +95,11 @@ class _Config(object):
                 lst.append(self.__true_tuple(sub_configs, obj))
                 continue
             elif isinstance(obj, dict):
-                obj = Config.from_dict(obj)
+                obj = Config.from_dict(obj, key_filter=self.__key_filter)
 
             if isinstance(obj, _Config):
                 self.__ensure_not_sub_config_of(obj)
-                sub_configs[obj]+=1
+                sub_configs[obj] += 1
             else:
                 self.__ensure_attribute_type(obj)
             lst.append(obj)
@@ -157,10 +157,10 @@ class _Config(object):
     def __update_from_dict(self, d):
         if not d:
             return
-        t = Config.create()
+        t = Config.create(key_filter=self.__key_filter)
         for k, v in iteritems(d):
             if isinstance(v, dict):
-                vv = Config.create()
+                vv = Config.create(key_filter=self.__key_filter)
                 vv.update(v)
                 setattr(t, k, vv)
             else:

@@ -201,6 +201,7 @@ def test_create_from_object():
     c = Config.from_object(A)
     assert c.a == 1
 
+
 def test_sub_config():
     c = Config.create()
     a = Config.create()
@@ -210,3 +211,14 @@ def test_sub_config():
     with pytest.raises(AttributeError):
         a.c = c
 
+
+def test_sub_config_with_key_filter():
+    c = Config.create(key_filter=lambda x: x.isupper())
+    d = Config.create(a=1, B=2)
+    c.M = d
+    assert c.M.a == 1
+    assert c.M.B == 2
+
+    c.update({'N': {'o': 1}, 'P': {'O': 2}})
+    assert not hasattr(c.N, 'o')
+    assert c.P.O == 2
