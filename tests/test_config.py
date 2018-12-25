@@ -258,3 +258,10 @@ b = [1,2,3]
     c = Config.from_pyfile(f.strpath)
     assert c.a == 1
     assert c.b == (1, 2, 3)
+
+
+def test_get():
+    c = Config.create(a=1)
+    assert c.get('a') == 1
+    assert c.get('b') is None
+    assert c.get('c', 2) == 2

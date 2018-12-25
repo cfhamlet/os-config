@@ -106,6 +106,9 @@ class _Config(object):
 
         return tuple(lst)
 
+    def get(self, key, default=None):
+        return self.__dict__.get(key, default)
+
     def __assign_tuple_obj(self, key, value):
 
         sub_configs = Counter()
