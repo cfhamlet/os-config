@@ -126,6 +126,8 @@ class _Config(object):
         if key not in PROTECTED_ATTRIBUTE_NAMES:
             if isinstance(value, list):
                 value = tuple(value)
+            elif isinstance(value, dict):
+                value = Config.from_dict(value, self.__key_filter)
             self.__ensure_attribute_type(value)
         if isinstance(value, _Config):
             self.__assign_config_obj(key, value)
