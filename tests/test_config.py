@@ -246,3 +246,15 @@ def test_set_config():
     assert c.B.m == 1
     c.C = {'a': 1}
     assert not hasattr(c.C, 'a')
+
+
+def test_from_pyfile(tmpdir):
+    txt = r'''
+a = 1
+b = [1,2,3]
+'''
+    f = tmpdir.join('test_config.py')
+    f.write(txt)
+    c = Config.from_pyfile(f.strpath)
+    assert c.a == 1
+    assert c.b == (1, 2, 3)

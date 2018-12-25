@@ -209,13 +209,26 @@ class Config(object):
         return Config.from_dict(d, key_filter=key_filter)
 
     @classmethod
-    def from_object(self, obj, key_filter=allowed_all):
+    def from_object(cls, obj, key_filter=allowed_all):
         d = {}
         for key in dir(obj):
             if key.startswith('_'):
                 continue
             d[key] = getattr(obj, key)
         return Config.from_dict(d, key_filter=key_filter)
+
+    @classmethod
+    def from_pyfile(cls, filename, key_filter=allowed_all):
+        module = types.ModuleType('config')
+        module.__file__ = filename
+        try:
+            with open(filename) as config_file:
+                exec(compile(config_file.read(), filename, 'exec'),
+                     module.__dict__)
+        except IOError as e:
+            e.strerror = 'Unable to load configuration file (%s)' % e.strerror
+            raise
+        return Config.from_object(module, allowed_all)
 
     @classmethod
     def to_json(cls, c):
