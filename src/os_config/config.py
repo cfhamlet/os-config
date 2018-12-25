@@ -74,13 +74,6 @@ class _Config(object):
         if not isinstance(value, VALID_TYPES):
             raise AttributeError('Do not support %r' % type(value))
 
-    def __add_sub_config(self, c):
-        if isinstance(c, _Config):
-            self.__sub_configs[c] += 1
-        elif isinstance(c, tuple):
-            for t in c:
-                self.__add_sub_config(t)
-
     def __discard_sub_config(self, c):
         if c in self.__sub_configs:
             self.__sub_configs[c] -= 1
@@ -92,7 +85,7 @@ class _Config(object):
 
     def __assign_config_obj(self, key, value):
         self.__ensure_not_sub_config_of(value)
-        self.__add_sub_config(value)
+        self.__sub_configs[value] += 1
         self.__assign(key, value)
 
     def __true_tuple(self, sub_configs, tp):
@@ -102,11 +95,11 @@ class _Config(object):
                 lst.append(self.__true_tuple(sub_configs, obj))
                 continue
             elif isinstance(obj, dict):
-                obj = Config.from_dict(obj)
+                obj = Config.from_dict(obj, key_filter=self.__key_filter)
 
             if isinstance(obj, _Config):
                 self.__ensure_not_sub_config_of(obj)
-                sub_configs[obj]+=1
+                sub_configs[obj] += 1
             else:
                 self.__ensure_attribute_type(obj)
             lst.append(obj)
@@ -133,6 +126,8 @@ class _Config(object):
         if key not in PROTECTED_ATTRIBUTE_NAMES:
             if isinstance(value, list):
                 value = tuple(value)
+            elif isinstance(value, dict):
+                value = Config.from_dict(value, self.__key_filter)
             self.__ensure_attribute_type(value)
         if isinstance(value, _Config):
             self.__assign_config_obj(key, value)
@@ -154,7 +149,6 @@ class _Config(object):
         for k, v in o:
             if k not in self:
                 setattr(self, k, v)
-                continue
             else:
                 vv = getattr(self, k)
                 if isinstance(v, _Config) and isinstance(vv, _Config):
@@ -165,10 +159,10 @@ class _Config(object):
     def __update_from_dict(self, d):
         if not d:
             return
-        t = Config.create()
+        t = Config.create(key_filter=self.__key_filter)
         for k, v in iteritems(d):
             if isinstance(v, dict):
-                vv = Config.create()
+                vv = Config.create(key_filter=self.__key_filter)
                 vv.update(v)
                 setattr(t, k, vv)
             else:

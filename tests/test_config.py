@@ -66,7 +66,7 @@ def test_invalid_type():
         pass
 
     c = Config.create()
-    for v in [{},  TestClass, TestClass(), test_method, ]:
+    for v in [TestClass, TestClass(), test_method, ]:
         with pytest.raises(AttributeError):
             c.c = v
 
@@ -201,6 +201,7 @@ def test_create_from_object():
     c = Config.from_object(A)
     assert c.a == 1
 
+
 def test_sub_config():
     c = Config.create()
     a = Config.create()
@@ -210,3 +211,38 @@ def test_sub_config():
     with pytest.raises(AttributeError):
         a.c = c
 
+
+def test_sub_config_with_key_filter():
+    c = Config.create(key_filter=lambda x: x.isupper())
+    d = Config.create(a=1, B=2)
+    c.M = d
+    assert c.M.a == 1
+    assert c.M.B == 2
+
+    c.update({'N': {'o': 1}, 'P': {'O': 2}})
+    assert not hasattr(c.N, 'o')
+    assert c.P.O == 2
+
+
+def test_assign_list():
+    c = Config.create(a=[1, 2, 3])
+    assert c.a == (1, 2, 3)
+    c.b = [3, 4, 5]
+    assert c.b == (3, 4, 5)
+
+
+def test_set_dict():
+    c = Config.create()
+    c.a = {"b": 1}
+    assert c.a.b == 1
+
+
+def test_set_config():
+    c = Config.create(key_filter=lambda x: x.isupper())
+
+    b = Config.create()
+    b.m = 1
+    c.B = b
+    assert c.B.m == 1
+    c.C = {'a': 1}
+    assert not hasattr(c.C, 'a')
