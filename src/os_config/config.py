@@ -65,6 +65,9 @@ class _Config(object):
         if not isinstance(value, VALID_TYPES):
             raise AttributeError('Do not support %r' % type(value))
 
+    def __repr__(self):
+        return repr(self.__dict)
+
     def __discard_sub_config(self, c):
         if c in self.__sub_configs:
             self.__sub_configs[c] -= 1
