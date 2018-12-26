@@ -265,3 +265,19 @@ def test_get():
     assert c.get('a') == 1
     assert c.get('b') is None
     assert c.get('c', 2) == 2
+
+
+def test_len():
+    c = Config.create()
+    assert len(c) == 0
+    c = Config.create(a=1)
+    assert len(c) == 1
+    c.a = 2
+    assert len(c) == 1
+
+
+def test_pop():
+    c = Config.create(a=1)
+    assert c.a == 1
+    c.pop('a')
+    assert not hasattr(c, 'a')

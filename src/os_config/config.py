@@ -20,14 +20,6 @@ def valid_variable_name(name):
         return False
 
 
-PROTECTED_ATTRIBUTE_NAMES = set(
-    [
-        '_Config__sub_configs',
-        '_Config__key_filter',
-    ]
-)
-
-
 def allowed_all(x): return True
 
 
@@ -38,7 +30,8 @@ class _Config(object):
 
     def __init__(self, key_filter=allowed_all):
         self.__dict__['_Config__key_filter'] = key_filter
-        self.__sub_configs = Counter({self: 1})
+        self.__dict__['_Config__dict'] = {}
+        self.__dict__['_Config__sub_configs'] = Counter({self: 1})
 
     def __is_sub_config(self, c):
         for sub in self.__sub_configs:
@@ -55,8 +48,6 @@ class _Config(object):
             raise AttributeError('Can not assign recursively')
 
     def __ensure_attribute_name(self, key):
-        if key in PROTECTED_ATTRIBUTE_NAMES:
-            return True
 
         if key.startswith('_'):
             raise AttributeError(
@@ -107,7 +98,14 @@ class _Config(object):
         return tuple(lst)
 
     def get(self, key, default=None):
-        return self.__dict__.get(key, default)
+        return self.__dict.get(key, default)
+
+    def pop(self, key):
+        if key in self.__dict:
+            v = self.__dict[key]
+            self.__discard_sub_config(v)
+
+        self.__dict.pop(key)
 
     def __assign_tuple_obj(self, key, value):
 
@@ -117,21 +115,22 @@ class _Config(object):
         self.__assign(key, new_value)
 
     def __assign(self, key, value):
-        if key in self.__dict__:
-            v = self.__dict__[key]
+        if key in self.__dict:
+            v = self.__dict[key]
             if v != value:
                 self.__discard_sub_config(v)
-        self.__dict__[key] = value
+        self.__dict[key] = value
 
     def __setattr__(self, key, value):
         if not self.__ensure_attribute_name(key):
             return
-        if key not in PROTECTED_ATTRIBUTE_NAMES:
-            if isinstance(value, list):
-                value = tuple(value)
-            elif isinstance(value, dict):
-                value = Config.from_dict(value, self.__key_filter)
-            self.__ensure_attribute_type(value)
+        if isinstance(value, list):
+            value = tuple(value)
+        elif isinstance(value, dict):
+            value = Config.from_dict(value, self.__key_filter)
+
+        self.__ensure_attribute_type(value)
+
         if isinstance(value, _Config):
             self.__assign_config_obj(key, value)
         elif isinstance(value, tuple):
@@ -139,11 +138,19 @@ class _Config(object):
         else:
             self.__assign(key, value)
 
+    def __getattr__(self, key):
+        if key not in self.__dict:
+            raise AttributeError('Do not have attribute \'{}\''.format(key))
+        return self.__dict[key]
+
+    def __len__(self):
+        return len(self.__dict)
+
     def __iter__(self):
-        return iter([(k, v) for k, v in iteritems(self.__dict__) if not k.startswith('_')])
+        return iter([(k, v) for k, v in iteritems(self.__dict) if not k.startswith('_')])
 
     def __contains__(self, key):
-        return key in self.__dict__
+        return key in self.__dict
 
     def __update_from_config(self, o):
         self.__ensure_not_sub_config_of(o)
