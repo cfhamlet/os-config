@@ -5,11 +5,26 @@ import sys
 import types
 from collections import Counter
 
+
 _PY3 = sys.version_info[0] == 3
 if _PY3:
     iteritems = operator.methodcaller('items')
 else:
     iteritems = operator.methodcaller("iteritems")
+
+
+def with_metaclass(meta, *bases):
+    """Create a base class with a metaclass from six."""
+
+    class metaclass(type):
+
+        def __new__(cls, name, this_bases, d):
+            return meta(name, bases, d)
+
+        @classmethod
+        def __prepare__(cls, name, this_bases):
+            return meta.__prepare__(name, bases)
+    return type.__new__(metaclass, 'temporary_class', (), {})
 
 
 def valid_variable_name(name):
@@ -20,7 +35,63 @@ def valid_variable_name(name):
         return False
 
 
-class _Config(object):
+def from_pyfile(cls, filename):
+    module = types.ModuleType('config')
+    module.__file__ = filename
+    try:
+        with open(filename) as config_file:
+            exec(compile(config_file.read(), filename, 'exec'),
+                 module.__dict__)
+    except IOError as e:
+        e.strerror = 'Unable to load configuration file (%s)' % e.strerror
+        raise
+    return cls.from_object(module)
+
+
+def from_object(cls, obj):
+    d = {}
+    for key in dir(obj):
+        if key.startswith('_'):
+            continue
+        d[key] = getattr(obj, key)
+    return cls.from_dict(d)
+
+
+def from_json(cls, j):
+    d = json.loads(j)
+    return cls.from_dict(d)
+
+
+def from_dict(cls, d):
+    if not isinstance(d, dict):
+        raise TypeError('Not dict, %s' % type(d))
+    return cls.create(**d)
+
+
+class ConfigMeta(type):
+    def __new__(cls, name, bases, namespace):
+        def not_allowed(self):
+            raise TypeError('Cannot init directly')
+
+        true_init = namespace.get('__init__')
+        namespace['__init__'] = not_allowed
+
+        def create(cls, **kwargs):
+            c = cls.__new__(cls)
+            true_init(c)
+            c.update(kwargs)
+            return c
+
+        namespace['create'] = classmethod(create)
+        namespace['from_dict'] = classmethod(from_dict)
+        namespace['from_object'] = classmethod(from_object)
+        namespace['from_json'] = classmethod(from_json)
+        namespace['from_pyfile'] = classmethod(from_pyfile)
+
+        return super(ConfigMeta, cls).__new__(cls, name, bases, namespace)
+
+
+class Config(with_metaclass(ConfigMeta, object)):
 
     def __init__(self):
         self.__dict__['_Config__dict'] = {}
@@ -82,7 +153,7 @@ class _Config(object):
             elif isinstance(obj, dict):
                 obj = Config.from_dict(obj)
 
-            if isinstance(obj, _Config):
+            if isinstance(obj, Config):
                 self.__ensure_not_sub_config_of(obj)
                 sub_configs[obj] += 1
             else:
@@ -125,7 +196,7 @@ class _Config(object):
 
         self.__ensure_attribute_type(value)
 
-        if isinstance(value, _Config):
+        if isinstance(value, Config):
             self.__assign_config_obj(key, value)
         elif isinstance(value, tuple):
             self.__assign_tuple_obj(key, value)
@@ -155,7 +226,7 @@ class _Config(object):
                 setattr(self, k, v)
             else:
                 vv = getattr(self, k)
-                if isinstance(v, _Config) and isinstance(vv, _Config):
+                if isinstance(v, Config) and isinstance(vv, Config):
                     vv.update(v)
                 else:
                     setattr(self, k, v)
@@ -175,71 +246,26 @@ class _Config(object):
         self.update(t)
 
     def update(self, o):
-        if isinstance(o, _Config):
+        if isinstance(o, Config):
             self.__update_from_config(o)
         elif isinstance(o, dict):
             self.__update_from_dict(o)
         else:
             raise ValueError('Can not update from %s' % str(type(o)))
 
-
-class _ConfigEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, _Config):
-            return dict([(k, v) for k, v in o])
-        return super(_ConfigEncoder, self).default(o)
-
-
-class Config(object):
-
-    def __new__(cls, *args, **kwargs):
-        raise TypeError('Not allowed create directly')
-
-    @classmethod
-    def create(cls, **kwargs):
-        c = _Config()
-        c.update(kwargs)
-        return c
-
-    @classmethod
-    def from_dict(cls, d):
-        if not isinstance(d, dict):
-            raise TypeError('Not dict, %s' % type(d))
-        return Config.create(**d)
-
-    @classmethod
-    def from_json(cls, j):
-        d = json.loads(j)
-        return Config.from_dict(d)
-
-    @classmethod
-    def from_object(cls, obj):
-        d = {}
-        for key in dir(obj):
-            if key.startswith('_'):
-                continue
-            d[key] = getattr(obj, key)
-        return Config.from_dict(d)
-
-    @classmethod
-    def from_pyfile(cls, filename):
-        module = types.ModuleType('config')
-        module.__file__ = filename
-        try:
-            with open(filename) as config_file:
-                exec(compile(config_file.read(), filename, 'exec'),
-                     module.__dict__)
-        except IOError as e:
-            e.strerror = 'Unable to load configuration file (%s)' % e.strerror
-            raise
-        return Config.from_object(module, allowed_all)
-
     @classmethod
     def to_json(cls, c):
         return json.dumps(c, cls=_ConfigEncoder)
 
 
-VALID_TYPES = [_Config, int, tuple, type(None), bool, float]
+class _ConfigEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, Config):
+            return dict([(k, v) for k, v in o])
+        return super(_ConfigEncoder, self).default(o)
+
+
+VALID_TYPES = [Config, int, tuple, type(None), bool, float]
 
 
 if _PY3:
