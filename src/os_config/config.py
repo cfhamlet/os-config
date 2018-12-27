@@ -20,16 +20,9 @@ def valid_variable_name(name):
         return False
 
 
-def allowed_all(x): return True
-
-
-def allowed_upper(x): return x.isupper()
-
-
 class _Config(object):
 
-    def __init__(self, key_filter=allowed_all):
-        self.__dict__['_Config__key_filter'] = key_filter
+    def __init__(self):
         self.__dict__['_Config__dict'] = {}
         self.__dict__['_Config__sub_configs'] = Counter({self: 1})
 
@@ -56,9 +49,7 @@ class _Config(object):
         elif not valid_variable_name(key):
             raise AttributeError("Invalid attribute name %s" % str(key))
 
-        if not self.__key_filter:
-            return True
-        return self.__key_filter(key)
+        return True
 
     def __ensure_attribute_type(self, value):
 
@@ -89,7 +80,7 @@ class _Config(object):
                 lst.append(self.__true_tuple(sub_configs, obj))
                 continue
             elif isinstance(obj, dict):
-                obj = Config.from_dict(obj, key_filter=self.__key_filter)
+                obj = Config.from_dict(obj)
 
             if isinstance(obj, _Config):
                 self.__ensure_not_sub_config_of(obj)
@@ -130,7 +121,7 @@ class _Config(object):
         if isinstance(value, list):
             value = tuple(value)
         elif isinstance(value, dict):
-            value = Config.from_dict(value, self.__key_filter)
+            value = Config.from_dict(value)
 
         self.__ensure_attribute_type(value)
 
@@ -172,10 +163,10 @@ class _Config(object):
     def __update_from_dict(self, d):
         if not d:
             return
-        t = Config.create(key_filter=self.__key_filter)
+        t = Config.create()
         for k, v in iteritems(d):
             if isinstance(v, dict):
-                vv = Config.create(key_filter=self.__key_filter)
+                vv = Config.create()
                 vv.update(v)
                 setattr(t, k, vv)
             else:
@@ -205,33 +196,33 @@ class Config(object):
         raise TypeError('Not allowed create directly')
 
     @classmethod
-    def create(cls, key_filter=allowed_all, **kwargs):
-        c = _Config(key_filter=key_filter)
+    def create(cls, **kwargs):
+        c = _Config()
         c.update(kwargs)
         return c
 
     @classmethod
-    def from_dict(cls, d, key_filter=allowed_all):
+    def from_dict(cls, d):
         if not isinstance(d, dict):
             raise TypeError('Not dict, %s' % type(d))
-        return Config.create(key_filter=key_filter, **d)
+        return Config.create(**d)
 
     @classmethod
-    def from_json(cls, j, key_filter=allowed_all):
+    def from_json(cls, j):
         d = json.loads(j)
-        return Config.from_dict(d, key_filter=key_filter)
+        return Config.from_dict(d)
 
     @classmethod
-    def from_object(cls, obj, key_filter=allowed_all):
+    def from_object(cls, obj):
         d = {}
         for key in dir(obj):
             if key.startswith('_'):
                 continue
             d[key] = getattr(obj, key)
-        return Config.from_dict(d, key_filter=key_filter)
+        return Config.from_dict(d)
 
     @classmethod
-    def from_pyfile(cls, filename, key_filter=allowed_all):
+    def from_pyfile(cls, filename):
         module = types.ModuleType('config')
         module.__file__ = filename
         try:

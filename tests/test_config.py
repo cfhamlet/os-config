@@ -1,6 +1,5 @@
 import pytest
 from os_config import Config
-from os_config.config import allowed_upper
 
 
 def test_create():
@@ -171,17 +170,6 @@ def test_dump_to_json_01():
     assert d['a'] == 1
 
 
-def test_key_filter_01():
-    c = Config.create(a=1, key_filter=allowed_upper)
-    assert not hasattr(c, 'a')
-
-    c.b = 1
-    assert not hasattr(c, 'b')
-
-    c.C = 1
-    assert hasattr(c, 'C')
-
-
 def test_tuple_with_list():
     d = {'a': (1, 2, [1, 2, 3])}
     c = Config.from_dict(d)
@@ -210,74 +198,3 @@ def test_sub_config():
     c.a = 1
     with pytest.raises(AttributeError):
         a.c = c
-
-
-def test_sub_config_with_key_filter():
-    c = Config.create(key_filter=lambda x: x.isupper())
-    d = Config.create(a=1, B=2)
-    c.M = d
-    assert c.M.a == 1
-    assert c.M.B == 2
-
-    c.update({'N': {'o': 1}, 'P': {'O': 2}})
-    assert not hasattr(c.N, 'o')
-    assert c.P.O == 2
-
-
-def test_assign_list():
-    c = Config.create(a=[1, 2, 3])
-    assert c.a == (1, 2, 3)
-    c.b = [3, 4, 5]
-    assert c.b == (3, 4, 5)
-
-
-def test_set_dict():
-    c = Config.create()
-    c.a = {"b": 1}
-    assert c.a.b == 1
-
-
-def test_set_config():
-    c = Config.create(key_filter=lambda x: x.isupper())
-
-    b = Config.create()
-    b.m = 1
-    c.B = b
-    assert c.B.m == 1
-    c.C = {'a': 1}
-    assert not hasattr(c.C, 'a')
-
-
-def test_from_pyfile(tmpdir):
-    txt = r'''
-a = 1
-b = [1,2,3]
-'''
-    f = tmpdir.join('test_config.py')
-    f.write(txt)
-    c = Config.from_pyfile(f.strpath)
-    assert c.a == 1
-    assert c.b == (1, 2, 3)
-
-
-def test_get():
-    c = Config.create(a=1)
-    assert c.get('a') == 1
-    assert c.get('b') is None
-    assert c.get('c', 2) == 2
-
-
-def test_len():
-    c = Config.create()
-    assert len(c) == 0
-    c = Config.create(a=1)
-    assert len(c) == 1
-    c.a = 2
-    assert len(c) == 1
-
-
-def test_pop():
-    c = Config.create(a=1)
-    assert c.a == 1
-    c.pop('a')
-    assert not hasattr(c, 'a')
