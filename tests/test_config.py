@@ -73,7 +73,7 @@ def test_invalid_type():
 def test_update_from_config_01():
     c = Config.create(a=1, b=2)
     d = Config.create()
-    d.update(c)
+    Config.update(d, c)
     assert d.a == 1
     assert d.b == 2
 
@@ -83,7 +83,7 @@ def test_update_from_config_02():
     d = Config.create()
 
     d.a = 2
-    d.update(c)
+    Config.update(d, c)
     assert d.a == 1
 
 
@@ -92,7 +92,7 @@ def test_udpate_from_config_recursive_01():
     d = Config.create()
     d.m = c
     with pytest.raises(AttributeError):
-        c.update(d)
+        Config.update(c, d)
 
 
 def test_udpate_from_config_recursive_02():
@@ -100,7 +100,7 @@ def test_udpate_from_config_recursive_02():
     d = Config.create()
     d.m = (c,)
     with pytest.raises(AttributeError):
-        c.update(d)
+        Config.update(c, d)
 
 
 def test_udpate_from_config_recursive_03():
@@ -110,12 +110,12 @@ def test_udpate_from_config_recursive_03():
     e.m = c
     d.m = (e,)
     with pytest.raises(AttributeError):
-        c.update(d)
+        Config.update(c, d)
 
 
 def test_update_from_dict_01():
     c = Config.create()
-    c.update({'a': 1, 'b': 2})
+    Config.update(c, {'a': 1, 'b': 2})
     assert c.a == 1
     assert c.b == 2
 
@@ -123,7 +123,7 @@ def test_update_from_dict_01():
 def test_update_from_dict_02():
     c = Config.create()
     d = {'a': {'b': 1}}
-    c.update(d)
+    Config.update(c, d)
     assert c.a.b == 1
 
 
@@ -131,7 +131,7 @@ def test_update_from_dict_03():
     c = Config.create()
     b = Config.create(b=1)
     d = {'a': b}
-    c.update(d)
+    Config.update(c, d)
     assert c.a.b == 1
 
 
@@ -140,7 +140,7 @@ def test_update_from_dict_04():
     assert c.a == 1
     b = Config.create(b=1)
     d = {'a': b}
-    c.update(d)
+    Config.update(c, d)
     assert c.a.b == 1
 
 
@@ -148,9 +148,9 @@ def test_update_from_dict_05():
     c = Config.create()
     b = Config.create(b=1)
     d = {'a': b}
-    c.update(d)
+    Config.update(c, d)
     d = {'a': 1}
-    c.update(d)
+    Config.update(c, d)
     assert c.a == 1
 
 

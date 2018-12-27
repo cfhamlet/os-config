@@ -8,7 +8,7 @@
 
 Config utility.
 
-In python world, it is common to use an object as config. But normal object lacks of some useful features for config purpose. This library offers an ``Config`` object which support create, update, attribute access, etc. Consider the usability and complexity in real programming work, config attribute types are limited into: ``int``, ``long``, ``float``, ``NoneType``, ``bool``, ``str``, ``unicode``, ``tuple`` and ``Config``(actually ``_Config``). ``list``, ``dict`` will convert to ``tuple`` and ``Config``.
+In python world, it is common to use an object as config. But normal object lacks of some useful features for config purpose. This library offers an ``Config`` object which support create, update, attribute access, etc. Consider the usability and complexity in real programming work, config attribute types are limited into: ``int``, ``long``, ``float``, ``NoneType``, ``bool``, ``str``, ``unicode``, ``tuple`` and ``Config``. ``list``, ``dict`` will convert to ``tuple`` and ``Config``.
  
 
 # Install
@@ -46,7 +46,7 @@ config = Config.from_json(json_string)
 ```
 config1 = Config.create(a=1)
 config2 = Config.create(a=2, b=3)
-config2.update(config1)
+Config.update(config2, config1)
 ```
 
 

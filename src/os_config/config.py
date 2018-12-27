@@ -79,7 +79,7 @@ class ConfigMeta(type):
         def create(cls, **kwargs):
             c = cls.__new__(cls)
             true_init(c)
-            c.update(kwargs)
+            Config.update(c, kwargs)
             return c
 
         namespace['create'] = classmethod(create)
@@ -162,16 +162,6 @@ class Config(with_metaclass(ConfigMeta, object)):
 
         return tuple(lst)
 
-    def get(self, key, default=None):
-        return self.__dict.get(key, default)
-
-    def pop(self, key):
-        if key in self.__dict:
-            v = self.__dict[key]
-            self.__discard_sub_config(v)
-
-        self.__dict.pop(key)
-
     def __assign_tuple_obj(self, key, value):
 
         sub_configs = Counter()
@@ -227,7 +217,7 @@ class Config(with_metaclass(ConfigMeta, object)):
             else:
                 vv = getattr(self, k)
                 if isinstance(v, Config) and isinstance(vv, Config):
-                    vv.update(v)
+                    Config.update(vv, v)
                 else:
                     setattr(self, k, v)
 
@@ -238,20 +228,44 @@ class Config(with_metaclass(ConfigMeta, object)):
         for k, v in iteritems(d):
             if isinstance(v, dict):
                 vv = Config.create()
-                vv.update(v)
+                Config.update(vv, v)
                 setattr(t, k, vv)
             else:
                 setattr(t, k, v)
 
-        self.update(t)
+        self.__update(t)
 
-    def update(self, o):
+    def __update(self, o):
         if isinstance(o, Config):
             self.__update_from_config(o)
         elif isinstance(o, dict):
             self.__update_from_dict(o)
         else:
             raise ValueError('Can not update from %s' % str(type(o)))
+
+    def __pop(self,  key):
+        if key in self.__dict:
+            v = self.__dict[key]
+            self.__discard_sub_config(v)
+
+        self.__dict.pop(key)
+
+    def __get(self, key, default=None):
+        return self.__dict.get(key, default)
+
+    @classmethod
+    def get(cls, c, key, default=None):
+        return c._Config__get(key, default)
+
+    @classmethod
+    def pop(cls, c, key):
+        assert isinstance(c, Config)
+        return c._Config__pop(key)
+
+    @classmethod
+    def update(cls, c, o):
+        assert isinstance(c, Config)
+        c._Config__update(o)
 
     @classmethod
     def to_json(cls, c):
