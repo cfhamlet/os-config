@@ -35,39 +35,6 @@ def valid_variable_name(name):
         return False
 
 
-def from_pyfile(cls, filename):
-    module = types.ModuleType('config')
-    module.__file__ = filename
-    try:
-        with open(filename) as config_file:
-            exec(compile(config_file.read(), filename, 'exec'),
-                 module.__dict__)
-    except IOError as e:
-        e.strerror = 'Unable to load configuration file (%s)' % e.strerror
-        raise
-    return cls.from_object(module)
-
-
-def from_object(cls, obj):
-    d = {}
-    for key in dir(obj):
-        if key.startswith('_'):
-            continue
-        d[key] = getattr(obj, key)
-    return cls.from_dict(d)
-
-
-def from_json(cls, j):
-    d = json.loads(j)
-    return cls.from_dict(d)
-
-
-def from_dict(cls, d):
-    if not isinstance(d, dict):
-        raise TypeError('Not dict, %s' % type(d))
-    return cls.create(**d)
-
-
 class ConfigMeta(type):
     def __new__(cls, name, bases, namespace):
         def not_allowed(self):
@@ -83,10 +50,6 @@ class ConfigMeta(type):
             return c
 
         namespace['create'] = classmethod(create)
-        namespace['from_dict'] = classmethod(from_dict)
-        namespace['from_object'] = classmethod(from_object)
-        namespace['from_json'] = classmethod(from_json)
-        namespace['from_pyfile'] = classmethod(from_pyfile)
 
         return super(ConfigMeta, cls).__new__(cls, name, bases, namespace)
 
@@ -258,14 +221,49 @@ class Config(with_metaclass(ConfigMeta, object)):
         return c._Config__get(key, default)
 
     @classmethod
-    def pop(cls, c, key):
+    def pop(cls, c, key, default=None):
         assert isinstance(c, Config)
+        if key not in c:
+            raise KeyError()
         return c._Config__pop(key)
 
     @classmethod
     def update(cls, c, o):
         assert isinstance(c, Config)
         c._Config__update(o)
+
+    @classmethod
+    def from_pyfile(cls, filename):
+        module = types.ModuleType('config')
+        module.__file__ = filename
+        try:
+            with open(filename) as config_file:
+                exec(compile(config_file.read(), filename, 'exec'),
+                     module.__dict__)
+        except IOError as e:
+            e.strerror = 'Unable to load configuration file (%s)' % e.strerror
+            raise
+        return cls.from_object(module)
+
+    @classmethod
+    def from_object(cls, obj):
+        d = {}
+        for key in dir(obj):
+            if key.startswith('_'):
+                continue
+            d[key] = getattr(obj, key)
+        return cls.from_dict(d)
+
+    @classmethod
+    def from_json(cls, j):
+        d = json.loads(j)
+        return cls.from_dict(d)
+
+    @classmethod
+    def from_dict(cls, d):
+        if not isinstance(d, dict):
+            raise TypeError('Not dict, %s' % type(d))
+        return cls.create(**d)
 
     @classmethod
     def to_json(cls, c):
