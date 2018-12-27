@@ -211,3 +211,15 @@ def test_get():
     assert Config.get(c, 'a') == 1
     assert Config.get(c, 'b') is None
     assert Config.get(c, 'c', 2) == 2
+
+
+def test_from_pyfile(tmpdir):
+    txt = r'''
+a = 1
+b = [1,2,3]
+'''
+    f = tmpdir.join('test_config.py')
+    f.write(txt)
+    c = Config.from_pyfile(f.strpath)
+    assert c.a == 1
+    assert c.b == (1, 2, 3)

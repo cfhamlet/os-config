@@ -218,13 +218,12 @@ class Config(with_metaclass(ConfigMeta, object)):
 
     @classmethod
     def get(cls, c, key, default=None):
+        assert isinstance(c, Config)
         return c._Config__get(key, default)
 
     @classmethod
-    def pop(cls, c, key, default=None):
+    def pop(cls, c, key):
         assert isinstance(c, Config)
-        if key not in c:
-            raise KeyError()
         return c._Config__pop(key)
 
     @classmethod
@@ -261,8 +260,7 @@ class Config(with_metaclass(ConfigMeta, object)):
 
     @classmethod
     def from_dict(cls, d):
-        if not isinstance(d, dict):
-            raise TypeError('Not dict, %s' % type(d))
+        assert isinstance(d, dict)
         return cls.create(**d)
 
     @classmethod
