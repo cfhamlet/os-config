@@ -198,3 +198,16 @@ def test_sub_config():
     c.a = 1
     with pytest.raises(AttributeError):
         a.c = c
+
+
+def test_pop():
+    c = Config.create(a=1)
+    Config.pop(c, 'a')
+    assert len(c) == 0
+
+
+def test_get():
+    c = Config.create(a=1)
+    assert Config.get(c, 'a') == 1
+    assert Config.get(c, 'b') is None
+    assert Config.get(c, 'c', 2) == 2
