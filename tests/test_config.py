@@ -223,3 +223,10 @@ b = [1,2,3]
     c = Config.from_pyfile(f.strpath)
     assert c.a == 1
     assert c.b == (1, 2, 3)
+
+
+def test_to_json():
+    import json
+    c = Config.create(a=1)
+    d = json.loads(Config.to_json(c))
+    d['a'] == 1

@@ -264,8 +264,11 @@ class Config(with_metaclass(ConfigMeta, object)):
         return cls.create(**d)
 
     @classmethod
-    def to_json(cls, c):
-        return json.dumps(c, cls=_ConfigEncoder)
+    def to_json(cls, c, **kwargs):
+        cls = _ConfigEncoder
+        if 'cls' in kwargs:
+            cls = kwargs.pop('cls')
+        return json.dumps(c, cls=cls, **kwargs)
 
 
 class _ConfigEncoder(json.JSONEncoder):
