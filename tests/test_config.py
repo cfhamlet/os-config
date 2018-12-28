@@ -198,3 +198,35 @@ def test_sub_config():
     c.a = 1
     with pytest.raises(AttributeError):
         a.c = c
+
+
+def test_pop():
+    c = Config.create(a=1)
+    Config.pop(c, 'a')
+    assert len(c) == 0
+
+
+def test_get():
+    c = Config.create(a=1)
+    assert Config.get(c, 'a') == 1
+    assert Config.get(c, 'b') is None
+    assert Config.get(c, 'c', 2) == 2
+
+
+def test_from_pyfile(tmpdir):
+    txt = r'''
+a = 1
+b = [1,2,3]
+'''
+    f = tmpdir.join('test_config.py')
+    f.write(txt)
+    c = Config.from_pyfile(f.strpath)
+    assert c.a == 1
+    assert c.b == (1, 2, 3)
+
+
+def test_to_json():
+    import json
+    c = Config.create(a=1)
+    d = json.loads(Config.to_json(c))
+    d['a'] == 1
