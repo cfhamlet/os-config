@@ -7,3 +7,4 @@ source = os_config
 source =
     src/os_config
     .tox/*/lib/python*/site-packages/os_config
+    .tox/*/site-packages/os_config
