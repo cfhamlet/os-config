@@ -211,7 +211,7 @@ class Config(with_metaclass(ConfigMeta, object)):
             v = self.__dict[key]
             self.__discard_sub_config(v)
 
-        self.__dict.pop(key)
+        return self.__dict.pop(key)
 
     def __get(self, key, default=None):
         return self.__dict.get(key, default)
