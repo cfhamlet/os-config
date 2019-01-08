@@ -270,6 +270,25 @@ class Config(with_metaclass(ConfigMeta, object)):
             cls = kwargs.pop('cls')
         return json.dumps(c, cls=cls, **kwargs)
 
+    @classmethod
+    def to_dict(cls, c, dict_type=dict):
+        assert isinstance(c, Config)
+        return _normalize(c, dict_type)
+
+
+def _normalize(c, norm_type=dict):
+    d = c
+    if isinstance(c, Config):
+        d = norm_type()
+        for k, v in c:
+            d[k] = _normalize(v, norm_type)
+    elif isinstance(c, tuple):
+        d = []
+        for obj in c:
+            d.append(_normalize(obj, norm_type))
+        d = tuple(d)
+    return d
+
 
 class ConfigEncoder(json.JSONEncoder):
     def default(self, o):
