@@ -265,17 +265,17 @@ class Config(with_metaclass(ConfigMeta, object)):
 
     @classmethod
     def to_json(cls, c, **kwargs):
-        cls = _ConfigEncoder
+        cls = ConfigEncoder
         if 'cls' in kwargs:
             cls = kwargs.pop('cls')
         return json.dumps(c, cls=cls, **kwargs)
 
 
-class _ConfigEncoder(json.JSONEncoder):
+class ConfigEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, Config):
             return dict([(k, v) for k, v in o])
-        return super(_ConfigEncoder, self).default(o)
+        return super(ConfigEncoder, self).default(o)
 
 
 VALID_TYPES = [Config, int, tuple, type(None), bool, float]
