@@ -230,3 +230,10 @@ def test_to_json():
     c = Config.create(a=1)
     d = json.loads(Config.to_json(c))
     d['a'] == 1
+
+
+def test_to_dict():
+    d = {'a': 1, 'b': (1, 2, 3), 'c': {'e': (4, 5, 6)}}
+    c = Config.from_dict(d)
+    dd = Config.to_dict(c)
+    assert d == dd
